@@ -1,13 +1,43 @@
 {
-  "name": "client",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/client/src",
-  "projectType": "application",
-  "tags": [],
-  "targets": {
-    "docker-build": {
-      "dependsOn": ["build"],
-      "command": "docker build -f apps/client/Dockerfile . -t client"
-    }
-  }
+	"name": "client",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "apps/client/src",
+	"projectType": "application",
+	"tags": [],
+	"targets": {
+		"docker-build": {
+			"dependsOn": ["build"],
+			"command": "docker build -f apps/client/Dockerfile . -t client",
+			"options": {
+				"cwd": "{workspaceRoot}"
+			}
+		},
+		"lint": {
+			"command": "biome check --error-on-warnings apps/client",
+			"options": {
+				"cwd": "{workspaceRoot}"
+			}
+		},
+		"build": {
+			"command": "bun --bun vite build --config apps/client/vite.config.ts --configLoader native",
+			"outputs": ["{workspaceRoot}/dist/apps/client"],
+			"options": {
+				"cwd": "{workspaceRoot}"
+			}
+		},
+		"serve": {
+			"command": "bun --bun vite --config apps/client/vite.config.ts --configLoader native",
+			"continuous": true,
+			"options": {
+				"cwd": "{workspaceRoot}"
+			}
+		},
+		"preview": {
+			"command": "bun --bun vite preview --config apps/client/vite.config.ts --configLoader native",
+			"continuous": true,
+			"options": {
+				"cwd": "{workspaceRoot}"
+			}
+		}
+	}
 }

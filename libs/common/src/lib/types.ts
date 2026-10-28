@@ -1,17 +1,4 @@
-export enum EventTypes {
-    INCREASE_SCORE = "increase_score",
-}
+const EventTypes = { increaseScore: "increase_score" } as const;
+const Rooms = { game: "game" } as const;
 
-export enum Errors {
-    NO_ROOM_FOUND = "No room found",
-    CANVAS_CONTEXT_NOT_FOUND = "Canvas context not found",
-    NO_PLAYER_FOUND = "No player found",
-}
-
-export enum Rooms {
-    GAME = "game",
-}
-
-export type ClassProperties<C> = {
-    [K in keyof C as C[K] extends Function ? never : K]: C[K]
-}
+export { EventTypes, Rooms };

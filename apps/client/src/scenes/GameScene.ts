@@ -1,22 +1,27 @@
-import { EventTypes } from "@common";
-import { useGameStore } from "../stores/game.store";
+import { Scene } from "phaser";
+import { EventTypes } from "../../../../libs/common/src/lib/types.ts";
+import { useGameStore } from "../stores/game.store.ts";
 
-export default class GameScene extends Phaser.Scene {
-    constructor() {
-        super('game');
-    }
+const SCORE_X = 100;
+const SCORE_Y = 150;
 
-    increaseScore() {
-        useGameStore.getState().room?.send(EventTypes.INCREASE_SCORE);
-    }
+export class GameScene extends Scene {
+	constructor() {
+		super("game");
+	}
 
-    create() {
-        useGameStore.subscribe(this.stateUpdate.bind(this));
-        ((this.add.text(100, 100, 'Click me (Game)')).setInteractive()).on('pointerdown', this.increaseScore);
-    }
+	static increaseScore(): void {
+		useGameStore.getState().room?.send(EventTypes.increaseScore);
+	}
 
-    stateUpdate() {
-        const newState = useGameStore.getState();
-        console.log('New state:', newState);
-    }
+	create(): void {
+		const score = this.add
+			.text(SCORE_X, SCORE_Y, "Click me (Game)")
+			.setInteractive();
+		score.on("pointerdown", GameScene.increaseScore);
+		const unsubscribe = useGameStore.subscribe((state): void => {
+			score.setText(`Click me (Game) - ${state.players.size} players`);
+		});
+		this.events.once("shutdown", unsubscribe);
+	}
 }
