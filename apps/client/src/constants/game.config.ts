@@ -1,13 +1,10 @@
-import Phaser from "phaser";
+import { AUTO, Scale, type Types } from "phaser";
 import { GameScene } from "../scenes/GameScene.ts";
 
-export const GAME_CONTAINER = "game-container";
-
-export const GAME_CONFIG: Phaser.Types.Core.GameConfig = {
-	type: Phaser.AUTO,
-	parent: GAME_CONTAINER,
+export const GAME_CONFIG: Types.Core.GameConfig = {
+	type: AUTO,
 	scale: {
-		mode: Phaser.Scale.ScaleModes.RESIZE,
+		mode: Scale.ScaleModes.RESIZE,
 		width: window.innerWidth,
 		height: window.innerHeight,
 	},

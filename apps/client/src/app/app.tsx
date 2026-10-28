@@ -1,7 +1,7 @@
-import { Game } from "phaser";
-import { type JSX, useEffect } from "react";
+import type { Game } from "phaser";
+import { type JSX, useEffect, useId, useState } from "react";
 import { EventTypes } from "../../../../libs/common/src/lib/types.ts";
-import { GAME_CONFIG, GAME_CONTAINER } from "../constants/game.config.ts";
+import { mountGame } from "../game/mountGame.ts";
 import { useNetwork } from "../hooks/useNetwork.tsx";
 import { useGameStore } from "../stores/game.store.ts";
 
@@ -31,14 +31,27 @@ function GameUi(): JSX.Element {
 		</div>
 	);
 }
+const GAME_ERROR =
+	"Unable to load the game. Please reload the page to try again.";
+const loadGame = async (parent: string): Promise<() => Game> => {
+	const { createGame } = await import("../game/createGame.ts");
+	return (): Game => createGame(parent);
+};
 function App(): JSX.Element {
-	useEffect(() => {
-		const game = new Game(GAME_CONFIG);
-		return (): void => game.destroy(true);
-	}, []);
+	const containerId = useId();
+	const [gameError, setGameError] = useState<boolean>(false);
+	useEffect(
+		() =>
+			mountGame(
+				() => loadGame(containerId),
+				(): void => setGameError(true),
+			),
+		[containerId],
+	);
 	return (
-		<div id={GAME_CONTAINER}>
+		<div id={containerId}>
 			<GameUi />
+			{gameError === true && <p role="alert">{GAME_ERROR}</p>}
 		</div>
 	);
 }

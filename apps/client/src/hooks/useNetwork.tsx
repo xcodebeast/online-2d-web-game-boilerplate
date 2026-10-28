@@ -1,4 +1,4 @@
-import { Client, type Room } from "@colyseus/sdk";
+import type { Room } from "@colyseus/sdk";
 import { useEffect, useState } from "react";
 import type { GameState } from "../../../../libs/common/src/lib/entities/GameState.ts";
 import { Rooms } from "../../../../libs/common/src/lib/types.ts";
@@ -37,10 +37,17 @@ const useNetwork = (): string | null => {
 			}
 			setError(message);
 		};
-		const client = new Client(
-			import.meta.env.VITE_WS_SERVER_URL ?? "ws://localhost:3000",
-		);
-		client.joinOrCreate<GameState>(Rooms.game).then(connected).catch(failed);
+		const connect = async (): Promise<void> => {
+			const { Client } = await import("@colyseus/sdk");
+			if (disposed) {
+				return;
+			}
+			const client = new Client(
+				import.meta.env.VITE_WS_SERVER_URL ?? "ws://localhost:3000",
+			);
+			await connected(await client.joinOrCreate<GameState>(Rooms.game));
+		};
+		connect().catch(failed);
 		return (): void => {
 			disposed = true;
 			activeRoom?.removeAllListeners();

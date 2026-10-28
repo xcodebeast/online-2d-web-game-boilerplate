@@ -721,7 +721,11 @@
 			}
 		},
 		{
-			"includes": ["apps/server/**/*.ts", "apps/client/vite.config.ts"],
+			"includes": [
+				"apps/server/**/*.ts",
+				"apps/client/vite.config.ts",
+				"scripts/**/*.ts"
+			],
 			"linter": {
 				"rules": {
 					"correctness": {

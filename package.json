@@ -13,8 +13,10 @@
 		"lint": "biome check --error-on-warnings .",
 		"lint:fix": "biome check --write .",
 		"typecheck": "bun --bun tsc --noEmit -p tsconfig.json",
-		"test": "bun test",
-		"check": "bun run lint && bun run typecheck && bun run test && bun run build"
+		"test": "bun test tests",
+		"check": "bun run lint && bun run typecheck && bun run test && bun run build && bun run bundle:check",
+		"test:browser": "bun --bun playwright test",
+		"bundle:check": "bun scripts/check-client-bundle.ts"
 	},
 	"private": true,
 	"dependencies": {
@@ -45,6 +47,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.6.3",
+		"@playwright/test": "1.64.1",
 		"@tailwindcss/vite": "4.3.3",
 		"@types/bun": "1.4.4",
 		"@types/cors": "2.8.19",
