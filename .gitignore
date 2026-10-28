@@ -48,3 +48,6 @@ Thumbs.db
 .env.production
 .nx/
 *.tsbuildinfo
+
+playwright-report/
+test-results/

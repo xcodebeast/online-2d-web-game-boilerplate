@@ -21,3 +21,5 @@ jobs:
         env:
           NX_DAEMON: "false"
           NX_NO_CLOUD: "true"
+      - run: bun --bun playwright install --with-deps chromium
+      - run: bun run test:browser
