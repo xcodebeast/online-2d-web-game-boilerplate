@@ -10,7 +10,7 @@
 		"libs/**/*.ts",
 		"tests/**/*.ts",
 		"scripts/**/*.ts",
-		"e2e/**/*.ts",
+		"e2e/**/*.mts",
 		"playwright.config.ts"
 	]
 }

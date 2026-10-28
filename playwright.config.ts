@@ -2,6 +2,7 @@ import { defineConfig } from "@playwright/test";
 
 // biome-ignore lint/style/noDefaultExport: Playwright loads its configuration from the default export.
 export default defineConfig({
+	// The .mts specs use Bun's native ESM loader instead of Playwright's CommonJS TypeScript hook.
 	testDir: "./e2e",
 	workers: 1,
 	// biome-ignore lint/style/useNamingConvention: Playwright requires the baseURL option name.
