@@ -1,50 +1,54 @@
-import { useCallback, useEffect, useState } from "react";
-import { Client, Room } from 'colyseus.js';
-import { GameState, Errors, Rooms } from "@common";
+import { Client, type Room } from "@colyseus/sdk";
+import { useEffect, useState } from "react";
+import type { GameState } from "../../../../libs/common/src/lib/entities/GameState.ts";
+import { Rooms } from "../../../../libs/common/src/lib/types.ts";
+import { useGameStore } from "../stores/game.store.ts";
 
-const useNetwork = () => {
-    const [client, setClient] = useState<Client | null>(null);
+const useNetwork = (): string | null => {
+	const [error, setError] = useState<string | null>(null);
+	useEffect(() => {
+		let disposed = false;
+		let activeRoom: Room<GameState> | undefined;
+		const update = (state: GameState): void => {
+			if (activeRoom !== undefined && !disposed) {
+				useGameStore.getState().unpackServerData(activeRoom, state);
+			}
+		};
+		const connected = async (room: Room<GameState>): Promise<void> => {
+			if (disposed) {
+				await room.leave();
+				return;
+			}
+			activeRoom = room;
+			room.onStateChange(update);
+			room.onLeave((): void => {
+				if (!disposed) {
+					useGameStore.getState().reset();
+				}
+			});
+		};
+		const failed = (cause: unknown): void => {
+			if (disposed) {
+				return;
+			}
+			let message = "Unable to join the game";
+			if (cause instanceof Error) {
+				({ message } = cause);
+			}
+			setError(message);
+		};
+		const client = new Client(
+			import.meta.env.VITE_WS_SERVER_URL ?? "ws://localhost:3000",
+		);
+		client.joinOrCreate<GameState>(Rooms.game).then(connected).catch(failed);
+		return (): void => {
+			disposed = true;
+			activeRoom?.removeAllListeners();
+			activeRoom?.leave().catch(failed);
+			useGameStore.getState().reset();
+		};
+	}, []);
+	return error;
+};
 
-    useEffect(() => {
-        setClient(new Client(import.meta.env.VITE_WS_SERVER_URL));
-    }, []);
-
-    /** * Joins a game room if it exists, otherwise creates a new one */
-    const joinOrCreateGame = useCallback(async (roomId: string) => {
-        const room = await client?.joinOrCreate(Rooms.GAME) as Room<GameState>;
-
-        if (!room) {
-            throw new Error(Errors.NO_ROOM_FOUND)
-        }
-        return room;
-    }, [client]);
-
-    /** * Joins to a specific game room */
-    const joinGame = useCallback(async (roomId: string) => {
-        const room = await client?.joinById(roomId) as Room<GameState>;
-
-        if (!room) {
-            throw new Error(Errors.NO_ROOM_FOUND)
-        }
-        return room;
-    }, [client]);
-
-    /** * Creates a new game room */
-    const createGame = useCallback(async () => {
-        const room = await client?.create(Rooms.GAME) as Room<GameState>;
-
-        if (!room) {
-            throw new Error(Errors.NO_ROOM_FOUND)
-        }
-        return room;
-    }, [client]);
-
-    return {
-        client,
-        joinGame,
-        joinOrCreateGame,
-        createGame,
-    }
-}
-
-export default useNetwork
+export { useNetwork };

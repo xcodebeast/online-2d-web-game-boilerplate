@@ -1,35 +1,32 @@
-import { MapSchema } from "@colyseus/schema";
-import { GameState, GameStateProperties } from "@common";
-import { Room } from "colyseus.js";
-import { create } from "zustand";
+import type { Room } from "@colyseus/sdk";
+import { create, type StoreApi } from "zustand";
+import type {
+	GameState,
+	GameStateProperties,
+} from "../../../../libs/common/src/lib/entities/GameState.ts";
 
-/** Networking properties from colyseus */
-type NetworkingProperties = {
-    room: Room<GameState> | null;
+export interface GameStore extends GameStateProperties {
+	room: Room<GameState> | null;
+	unpackServerData: (room: Room<GameState>, incomingState: GameState) => void;
+	reset: () => void;
 }
 
-/** Networking utilities */
-type NetworkingUtils = {
-    /**  Unpacks the server data into the store */
-    unpackServerData: (room: Room, incomingState: GameState) => void;
-}
-
-/** Game store type */
-export type GameStore = GameStateProperties & NetworkingProperties & NetworkingUtils & {
-    // Add custom store properties here
-}
-
-/** Game store */
-export const useGameStore = create<GameStore>()((set) => ({
-    unpackServerData: (room, incomingState) => set((state) => ({
-        ...state,
-        ...incomingState,
-        room,
-    })),
-
-    // Networking properties (from colyseus)
-    room: null,
-
-    // Game state properties (from server)
-    players: new MapSchema(),
-}))
+export const useGameStore = create<GameStore>()(
+	(set: StoreApi<GameStore>["setState"]) => ({
+		unpackServerData: (
+			room: Room<GameState>,
+			incomingState: GameState,
+		): void => {
+			const players = new Map(
+				Array.from(incomingState.players.entries(), ([id, player]) => [
+					id,
+					{ id: player.id, score: player.score },
+				]),
+			);
+			set({ players, room });
+		},
+		reset: (): void => set({ room: null, players: new Map() }),
+		room: null,
+		players: new Map(),
+	}),
+);

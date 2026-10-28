@@ -1,35 +1,36 @@
-import { EventTypes, GameState } from "@common";
-import { Client, ClientArray, Room } from "colyseus";
-import { Colors, colorize, log } from "../lib/log";
+import type { Client } from "@colyseus/core";
+import { Room } from "@colyseus/core";
+import { GameState } from "../../../../libs/common/src/lib/entities/GameState.ts";
+import { EventTypes } from "../../../../libs/common/src/lib/types.ts";
+import { Colors, colorize, log } from "../lib/log.ts";
 
-export class GameRoom extends Room<GameState> {
+export class GameRoom extends Room<{ state: GameState }> {
+	override state = new GameState();
 
-  /*±±±±± Lifecycle events ±±±±±*/
+	override onCreate(): void {
+		this.onMessage(EventTypes.increaseScore, (client: Client): void => {
+			this.onIncreaseScore(client);
+		});
+	}
 
-  onCreate() {
-    this.setState(new GameState());
+	override onJoin({ sessionId }: Client): void {
+		this.state.addPlayer(sessionId);
+		log(`Player ${sessionId} has joined`);
+	}
 
-    this.onMessage(EventTypes.INCREASE_SCORE, (client) => this.onIncreaseScore(client, this.state));
-  }
+	override onLeave({ sessionId }: Client): void {
+		this.state.removePlayer(sessionId);
+		log(`Player ${sessionId} has left`);
+	}
 
-  onJoin({ sessionId }: Client) {
-    this.state.addPlayer(sessionId);
-    log(`Player ${sessionId} has joined`);
-  }
-
-  onLeave({ sessionId }: Client<this["clients"] extends ClientArray<infer U, any> ? U : never, this["clients"] extends ClientArray<infer _, infer U> ? U : never>, consented?: boolean): void | Promise<any> {
-    this.state.removePlayer(sessionId);
-    log(`Player ${sessionId} has left`);
-  }
-
-  /*±±±±± Custom events ±±±±±*/
-
-  onIncreaseScore({ sessionId }: Client, state: GameState) {
-    if (!state.hasPlayer(sessionId)) return;
-
-    const player = state.getPlayer(sessionId);
-
-    player.increaseScore();
-    log(`Player ${sessionId} has increased score to ${colorize(player.score, Colors.YELLOW)}`);
-  }
+	onIncreaseScore({ sessionId }: Client): void {
+		const player = this.state.getPlayer(sessionId);
+		if (!player) {
+			return;
+		}
+		player.increaseScore();
+		log(
+			`Player ${sessionId} has increased score to ${colorize(player.score, Colors.yellow)}`,
+		);
+	}
 }

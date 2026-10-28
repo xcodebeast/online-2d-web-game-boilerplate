@@ -1,87 +1,57 @@
 # Online Web Game Boilerplate
 
-# Setup
-You’ll need to install a few things before you have a working copy of the project.
+A React and Phaser client with a Colyseus multiplayer server, shared TypeScript game state, and Zustand stores.
 
-### Requirements:
+## Setup
 
-- node >= 18.1.2,
-- npm >= 10.5.2
+Install [Bun](https://bun.com/docs/installation) 1.4.4 or newer. The pinned version is in `.bun-version`.
 
-### 1. Clone this repo:
+```sh
+git clone https://github.com/xcodebeast/online-2d-web-game-boilerplate.git
+cd online-2d-web-game-boilerplate
+bun install --frozen-lockfile
+cp apps/client/.env.example apps/client/.env
+cp apps/server/.env.example apps/server/.env
+bun run dev
+```
 
-Navigate into your workspace directory.
+Open [http://localhost:8080](http://localhost:8080). The server listens on port 3000. Set `VITE_WS_SERVER_URL` in `apps/client/.env` to change the client endpoint, and `PORT` in `apps/server/.env` to change the server port. Restart the relevant development process after changing environment variables.
 
-Run:
+Run the apps separately with `bun run client:serve` and `bun run server:serve`.
 
-```git clone https://github.com/flobbun/online-web-game-boilerplate.git```
+## Checks
 
-### 2. Install dependencies:
+```sh
+bun run lint        # Biome formatting, imports, and strict lint rules
+bun run lint:fix    # Apply safe automatic fixes
+bun run typecheck
+bun run test
+bun run build
+bun run check       # Run all checks above
+```
 
-Navigate to the cloned repo’s directory.
+Biome enables every available lint rule at error severity, including nursery rules. Framework and runtime exceptions are scoped in `biome.json`: Qwik serialization rules do not apply to React or the server, React web uses React props and DOM text, the server and Vite configuration can use Bun-compatible Node APIs, and Bun tests can import `bun:test`. The dependency restriction rule is disabled for the package manifest because Colyseus requires Express. Other necessary exceptions have comments beside the code. The VS Code recommendations include the Biome extension. Bun is the runtime, package manager, and test runner; commit changes to `bun.lock` when updating dependencies.
 
-Run:
+Nx coordinates the client and server tasks. The server uses Bun's bundler and watch mode. The client uses Vite with React and Tailwind CSS 4. Nx targets use explicit commands so the latest TypeScript and Vite do not depend on the compatibility ranges of Nx build plugins. Shared state lives in `libs/common` and uses Colyseus schema decorators.
 
-```npm install```
+## Deployment
 
-### 3. Create a .env file:
+```sh
+bun run build
+bun run server:start
+```
 
-Both client and server folders have a `.env.example` with the necessary environment variables to work, you'll need to make a copy of them and rename it to `.env`.
+The client build is in `dist/apps/client`; serve it with a static web server. The server build is in `dist/apps/server` and requires Bun plus the production dependencies. Set `VITE_WS_SERVER_URL` before building the client to point at the deployed server's public WebSocket endpoint. Use `wss://` when the client uses HTTPS.
 
-Run the following commands in the root directory of the project:
+For local containers, install Docker and run:
 
-```cp apps/client/.env.example apps/client/.env```
+```sh
+bun run build
+docker compose up --build
+```
 
-```cp apps/server/.env.example apps/server/.env```
-
-### 4. Run both, client and server:
-
-```npm run dev```
-
-or run them separately:
-
-```npm run client```
-
-```npm run server```
-
-And that's it! You should see the client and server running in your terminal.
-
-Navigate to [http://localhost:4200](http://localhost:4200) to see your project in the browser.
-
-### Build for deployment:
-
-Run:
-
-```npm run build```
-
-This will create a `dist` folder in the root directory of the project with the client and server build files.
-
-### Run on a docker container:
-
-After building the project, you can run it on a docker.
-
-```docker-compose up```
-
-## What’s inside?
-
-Two apps, one for the client and one for the server.
-
-The client app is a simple react app that connects to the server via websockets.
-
-The server app is a simple node.js app that uses express.js.
-
-Both client and server use [colyseus](https://colyseus.io/) for the websocket communication and game state management.
-
-In the client app you can find a simple example of how to use the colyseus client to connect to the server and how to handle the game state.
-
-We use [zustand](https://zustand-demo.pmnd.rs/) for the client state management.
-
-The monorepo also has a small library to save types and entities, which can be shared between the client and the server.
-
-## License
-
-This project is open source and available under the [MIT License](LICENSE).
+The client is available on port 8080 and the server on port 3000. Docker builds use the existing `dist` output. Run `bun run build` again after source changes. The server image installs production dependencies from the frozen Bun lockfile and runs as an unprivileged user.
 
 ## Contributing
 
-If you want to contribute to this project and make it better, your help is very welcome.
+Run `bun run check` before opening a pull request.

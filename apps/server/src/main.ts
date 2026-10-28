@@ -1,24 +1,10 @@
-import express from "express";
-import { createServer } from "http";
-import { Server } from "@colyseus/core";
-import { WebSocketTransport } from "@colyseus/ws-transport"
-import { GameRoom } from "./rooms/GameRoom";
-import cors from "cors";
+import { createGameServer } from "./lib/server.ts";
 
-const port = process.env.PORT ? Number(process.env.PORT) : 3000;
-
-const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cors())
-const server = createServer(app);
-
-const gameServer = new Server({
-  greet: false,
-  transport: new WebSocketTransport({
-    server
-  })
-});
-
-gameServer.define("game", GameRoom);
-gameServer.listen(port);
+const DEFAULT_PORT = 3000;
+const MAX_PORT = 65_535;
+const port = Number(Bun.env.PORT ?? DEFAULT_PORT);
+if (!Number.isInteger(port) || port < 1 || port > MAX_PORT) {
+	throw new Error("PORT must be an integer between 1 and 65535");
+}
+const { gameServer } = createGameServer();
+await gameServer.listen(port);

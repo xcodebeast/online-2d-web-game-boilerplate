@@ -1,9 +1,4 @@
-FROM nginx:alpine
-
-WORKDIR /app
-
-COPY ./dist/apps/client /usr/share/nginx/html
-
-EXPOSE 8080
-
+FROM nginx:stable-alpine
+COPY dist/apps/client /usr/share/nginx/html
+EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

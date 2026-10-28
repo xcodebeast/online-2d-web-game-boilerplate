@@ -1,61 +1,36 @@
 {
-  "name": "server",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/server/src",
-  "projectType": "application",
-  "tags": [],
-  "targets": {
-    "build": {
-      "executor": "@nx/esbuild:esbuild",
-      "outputs": ["{options.outputPath}"],
-      "defaultConfiguration": "production",
-      "options": {
-        "platform": "node",
-        "outputPath": "dist/apps/server",
-        "format": ["cjs"],
-        "bundle": false,
-        "main": "apps/server/src/main.ts",
-        "tsConfig": "apps/server/tsconfig.app.json",
-        "assets": ["apps/server/src/assets"],
-        "generatePackageJson": true,
-        "esbuildOptions": {
-          "sourcemap": true,
-          "outExtension": {
-            ".js": ".js"
-          }
-        }
-      },
-      "configurations": {
-        "development": {},
-        "production": {
-          "generateLockfile": true,
-          "esbuildOptions": {
-            "sourcemap": false,
-            "outExtension": {
-              ".js": ".js"
-            }
-          }
-        }
-      }
-    },
-    "serve": {
-      "executor": "@nx/js:node",
-      "defaultConfiguration": "development",
-      "options": {
-        "buildTarget": "server:build"
-      },
-      "configurations": {
-        "development": {
-          "buildTarget": "server:build:development"
-        },
-        "production": {
-          "buildTarget": "server:build:production"
-        }
-      }
-    },
-    "docker-build": {
-      "dependsOn": ["build"],
-      "command": "docker build -f apps/server/Dockerfile . -t server"
-    }
-  }
+	"name": "server",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "apps/server/src",
+	"projectType": "application",
+	"tags": [],
+	"targets": {
+		"build": {
+			"command": "bun build apps/server/src/main.ts --target=bun --packages=external --outdir=dist/apps/server --sourcemap=external",
+			"outputs": ["{workspaceRoot}/dist/apps/server"],
+			"options": {
+				"cwd": "{workspaceRoot}"
+			}
+		},
+		"serve": {
+			"command": "bun --env-file=apps/server/.env --watch apps/server/src/main.ts",
+			"continuous": true,
+			"options": {
+				"cwd": "{workspaceRoot}"
+			}
+		},
+		"docker-build": {
+			"dependsOn": ["build"],
+			"command": "docker build -f apps/server/Dockerfile . -t server",
+			"options": {
+				"cwd": "{workspaceRoot}"
+			}
+		},
+		"lint": {
+			"command": "biome check --error-on-warnings apps/server",
+			"options": {
+				"cwd": "{workspaceRoot}"
+			}
+		}
+	}
 }
